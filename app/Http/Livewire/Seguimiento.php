@@ -255,9 +255,6 @@ class Seguimiento extends Component
     public function render()
     {
 
-
-
-
         if(auth()->user()->roles[0]->name == 'Director' || auth()->user()->roles[0]->name == 'Coordinador'){
 
             $trackings = Tracking::with('entrie','createdBy', 'updatedBy', 'files')

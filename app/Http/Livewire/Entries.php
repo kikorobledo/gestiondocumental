@@ -216,7 +216,35 @@ class Entries extends Component
     public function render()
     {
 
-        $entries = Entrie::with('createdBy', 'updatedBy', 'origen', 'destinatario', 'asignadoA', 'trackings', 'conclusions')
+        if(auth()->user()->roles[0]->name == 'Director' || auth()->user()->roles[0]->name == 'Coordinador'){
+
+            $entries = Entrie::with('createdBy', 'updatedBy', 'origen', 'destinatario', 'asignadoA', 'trackings', 'conclusions')
+                            ->where('asignacion', auth()->user()->id)
+                            ->where(function($q){
+                                return $q->where('folio', 'LIKE', '%' . $this->search . '%')
+                                            ->orWhere('asunto','LIKE', '%' . $this->search . '%')
+                                            ->orWhere(function($q){
+                                                return $q->whereHas('destinatario', function($q){
+                                                    return $q->where('name', 'LIKE', '%' . $this->search . '%');
+                                                });
+                                            })
+                                            ->orWhere(function($q){
+                                                return $q->whereHas('origen', function($q){
+                                                    return $q->where('name', 'LIKE', '%' . $this->search . '%');
+                                                });
+                                            })
+                                            ->orWhere(function($q){
+                                                return $q->whereHas('asignadoA', function($q){
+                                                    return $q->where('name', 'LIKE', '%' . $this->search . '%');
+                                                });
+                                            });
+                            })
+                            ->orderBy($this->sort, $this->direction)
+                            ->paginate($this->pagination);
+
+        }else{
+
+            $entries = Entrie::with('createdBy', 'updatedBy', 'origen', 'destinatario', 'asignadoA', 'trackings', 'conclusions')
                             ->where('folio', 'LIKE', '%' . $this->search . '%')
                             ->orWhere('asunto','LIKE', '%' . $this->search . '%')
                             ->orWhere(function($q){
@@ -236,6 +264,7 @@ class Entries extends Component
                             })
                             ->orderBy($this->sort, $this->direction)
                             ->paginate($this->pagination);
+        }
 
         $users = User::all();
 
