@@ -2,13 +2,15 @@
 
 @section('content')
 
-    <div class="bg-white rounded-lg shadow-2xl w-full p-4 mb-5">
+    <div class="bg-white rounded-lg shadow-2xl w-full p-4 mb-5 border-t-2 border-red-700">
 
         <h1 class="text-2xl font-thin tracking-widest mb-4">Entrada</h1>
 
         <p class="text-lg mb-2">Folio: <span class="text-gray-600">{{ $entrie->folio }}</span></p>
 
         <p class="text-lg mb-2">Número de oficio: <span class="text-gray-600">{{ $entrie->numero_oficio }}</span></p>
+
+        <p class="text-lg mb-2">Fecha de termino: <span class="text-gray-600">{{ $entrie->fecha_termino }}</span></p>
 
         <p class="text-lg mb-2">Asunto:</p>
 
@@ -18,9 +20,25 @@
 
         </div>
 
+        <div class=" space-x-3 mt-3 text-right">
+
+            @foreach ($entrie->files as $file )
+
+                <a
+                    href="{{ Storage::disk('pdfs')->url($file->url)}}"
+                    target="_blank"
+                    class="bg-red-400 hover:shadow-lg text-white text-xs md:text-sm px-3 py-1 rounded-full hover:bg-red-700 focus:outline-none mr-2 md:mr-0"
+                >
+                PDF {{ $loop->iteration }}
+                </a>
+
+            @endforeach
+
+        </div>
+
     </div>
 
-    <div class="bg-white rounded-lg shadow-2xl w-full p-4 mb-5">
+    <div class="bg-white rounded-lg shadow-2xl w-full p-4 mb-5 border-t-2 border-red-700">
 
         <h1 class="text-2xl font-thin tracking-widest mb-4">Seguimiento</h1>
 
@@ -78,7 +96,7 @@
 
     </div>
 
-    <div class="bg-white rounded-lg shadow-2xl w-full p-4 mb-5">
+    <div class="bg-white rounded-lg shadow-2xl w-full p-4 mb-5 border-t-2 border-red-700">
 
         <h1 class="text-2xl font-thin tracking-widest mb-4">Conclusión</h1>
 

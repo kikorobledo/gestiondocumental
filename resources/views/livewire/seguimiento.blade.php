@@ -280,7 +280,7 @@
 
                                 <div class="md:space-y-1 flex flex-grow-0 md:flex-col justify-center text-center items-center">
 
-                                    @foreach ($tracking->files as $file)
+                                    @foreach ($entrie->files as $file)
                                         <a
                                             href="{{ Storage::disk('pdfs')->url($file->url)}}"
                                             target="_blank"
@@ -652,7 +652,7 @@
     <x-jet-confirmation-modal wire:model="modalDeleteFile">
 
         <x-slot name="title">
-            Eliminar Usuario
+            Eliminar Archivo
         </x-slot>
 
         <x-slot name="content">

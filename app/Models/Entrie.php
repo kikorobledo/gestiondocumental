@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use App\Models\File;
 use App\Models\User;
 use App\Models\Conclusion;
 use Illuminate\Database\Eloquent\Model;
@@ -32,6 +33,10 @@ class Entrie extends Model
 
     public function conclusions(){
         return $this->hasMany(Conclusion::class);
+    }
+
+    public function files(){
+        return $this->morphMany(File::class, 'fileable');
     }
 
     public function createdBy(){

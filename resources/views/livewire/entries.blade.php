@@ -223,6 +223,43 @@
 
                         </th>
 
+
+                        <th wire:click="order('fecha_termino')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
+
+                            Fecha de termino
+
+                            @if($sort == 'fecha_termino')
+
+                                @if($direction == 'asc')
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                                    </svg>
+
+                                @else
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                    </svg>
+
+                                @endif
+
+                            @else
+
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                </svg>
+
+                            @endif
+
+                        </th>
+
+                        <th class="px-3 py-3 hidden lg:table-cell">
+
+                            Archivos
+
+                        </th>
+
                         <th class="px-3 py-3 hidden lg:table-cell">
 
                             Estado
@@ -347,6 +384,35 @@
                                 <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Asignado A</span>
 
                                 {{ $entrie->asignadoA->name }}
+
+                            </td>
+
+                            <td class="px-3 py-3 w-full lg:w-auto p-3 text-gray-800 text-center lg:text-left lg:border-0 border border-b block lg:table-cell relative lg:static">
+
+                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Fecha de termino</span>
+
+                                {{ $entrie->fecha_termino }}
+
+                            </td>
+
+                            <td class="px-3 py-3 w-full lg:w-auto p-3 text-gray-800 text-center lg:text-left lg:border-0 border border-b block lg:table-cell relative lg:static">
+
+                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Archivos</span>
+
+                                <div class="md:space-y-1 flex flex-grow-0 md:flex-col justify-center text-center items-center">
+
+                                    @foreach ($entrie->files as $file)
+                                        <a
+                                            href="{{ Storage::disk('pdfs')->url($file->url)}}"
+                                            target="_blank"
+                                            class="bg-red-400 hover:shadow-lg text-white text-xs  px-3 py-1 rounded-full hover:bg-red-700 focus:outline-none mr-2 md:mr-0"
+                                        >
+                                        PDF {{ $loop->iteration }}
+                                        </a>
+
+                                    @endforeach
+
+                                </div>
 
                             </td>
 
@@ -601,6 +667,28 @@
 
                     <div>
 
+                        <Label>Fecha de termino</Label>
+
+                    </div>
+
+                    <div>
+
+                        <input type="date" class="bg-white rounded text-sm w-full" wire:model.defer="fecha_termino">
+
+                    </div>
+
+                    <div>
+
+                        @error('fecha_termino') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
+
+                    </div>
+
+                </div>
+
+                <div class="flex-auto mr-1 ">
+
+                    <div>
+
                         <Label>Origen</Label>
 
                     </div>
@@ -686,6 +774,49 @@
 
             </div>
 
+            <div class="flex-auto">
+
+                <div>
+
+                    @foreach ($files_edit as $file)
+
+                        <div class="flex space-x-2 items-center mb-2">
+
+                            <a
+                                href="{{ Storage::disk('pdfs')->url($file['url'])}}"
+                                target="_blank"
+                                class="bg-red-400 hover:shadow-lg text-white text-xs md:text-sm px-3 py-1 rounded-full hover:bg-red-700 focus:outline-none w-auto"
+                            >
+                            PDF {{ $loop->iteration }}
+                            </a>
+
+                            <button
+                                wire:click="openModalDeleteFile({{$file['id']}})"
+                                wire:loading.attr="disabled"
+                                wire:target="openModalDeleteFile({{$file['id']}})"
+                                class="bg-red-400 hover:shadow-lg text-white text-xs md:text-sm px-3 py-2 rounded-full hover:bg-red-700 flex focus:outline-none"
+                            >
+
+                                <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
+
+                            </button>
+
+                        </div>
+
+                    @endforeach
+
+                </div>
+
+                <div>
+                    @error('files.*') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
+                </div>
+
+                <x-filepond wire:model="files" multiple />
+
+            </div>
+
         </x-slot>
 
         <x-slot name="footer">
@@ -750,6 +881,38 @@
             <x-jet-danger-button
                 class="ml-2"
                 wire:click="delete()"
+                wire:loading.attr="disabled"
+                wire:target="delete"
+            >
+                Borrar
+            </x-jet-danger-button>
+
+        </x-slot>
+
+    </x-jet-confirmation-modal>
+
+    <x-jet-confirmation-modal wire:model="modalDeleteFile">
+
+        <x-slot name="title">
+            Eliminar Archivo
+        </x-slot>
+
+        <x-slot name="content">
+            ¿Esta seguro que desea eliminar el archivo?, No sera posible recuperar la información.
+        </x-slot>
+
+        <x-slot name="footer">
+
+            <x-jet-secondary-button
+                wire:click="$toggle('modalDelete')"
+                wire:loading.attr="disabled"
+            >
+                No
+            </x-jet-secondary-button>
+
+            <x-jet-danger-button
+                class="ml-2"
+                wire:click="deleteFile()"
                 wire:loading.attr="disabled"
                 wire:target="delete"
             >

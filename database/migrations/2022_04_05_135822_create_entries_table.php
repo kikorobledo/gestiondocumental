@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('folio');
             $table->string('numero_oficio');
             $table->text('asunto');
+            $table->date('fecha_termino')->nullable();
             $table->foreignId('destinatario_id')->nullable()->constrained()->references('id')->on('dependencies');
             $table->foreignId('origen_id')->nullable()->constrained()->references('id')->on('dependencies');
             $table->foreignId('asignacion')->nullable()->constrained()->references('id')->on('users');
