@@ -2,14 +2,17 @@
 
 namespace App\Http\Livewire;
 
+use Carbon\Carbon;
 use App\Models\File;
 use App\Models\User;
 use App\Models\Entrie;
+use App\Models\Office;
 use Livewire\Component;
 use App\Models\Dependency;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
-use App\Notifications\NotifyUserAsignation;
+use App\Http\Traits\ComponentesTrait;
+use Illuminate\Support\Facades\Storage;
 
 class Entries extends Component
 {
@@ -17,25 +20,15 @@ class Entries extends Component
 
     use WithPagination;
     use WithFileUploads;
+    use ComponentesTrait;
 
-    public $modal = false;
-    public $modalDelete = false;
-    public $modalDeleteFile = false;
-    public $create = false;
-    public $edit = false;
-    public $search;
-    public $sort = 'id';
-    public $direction = 'desc';
-    public $pagination=10;
-
-    public $entrie_id;
-    public $folio;
+    public $selected_id;
     public $asunto;
     public $destinatario;
     public $fecha_termino;
     public $origen;
     public $numero_oficio;
-    public $asignadoA;
+    public $asignadoA = [];
     public $auxUser;
     public $files = [];
     public $files_edit = [];
@@ -43,9 +36,8 @@ class Entries extends Component
 
     protected function rules(){
         return[
-            'folio' => 'required',
             'numero_oficio' => 'required',
-            'asunto' => 'required',
+            'asunto' => 'required|not_in:<p><br></p>',
             'destinatario' => 'required',
             'origen' => 'required',
             'asignadoA' => 'required',
@@ -58,40 +50,22 @@ class Entries extends Component
         'asignadoA.required' => 'El campo asignar a es obligatorio.',
         'fecha_termino.date' => 'El campo fecha de termino debe de ser una fecha valida.',
         'numero_oficio.required' => 'El campo número de oficio a es obligatorio.',
-        'files.*.mimes' => 'Solo se admiten archivos PDF'
+        'files.*.mimes' => 'Solo se admiten archivos PDF',
+        'asunto.not_in' => 'El comentario es obligatorio'
     ];
 
-    public function updatingSearch(){
-        $this->resetPage();
-    }
+    public function updatedAsunto(){
 
-    public function order($sort){
+        $this->asunto = str_replace("'", "\"", $this->asunto);
 
-        if($this->sort == $sort){
-            if($this->direction == 'desc'){
-                $this->direction = 'asc';
-            }else{
-                $this->direction = 'desc';
-            }
-        }else{
-            $this->sort = $sort;
-            $this->direction = 'asc';
-        }
+        $this->dispatchBrowserEvent('quill-get');
+
     }
 
     public function resetAll(){
-        $this->reset('entrie_id','folio', 'asunto', 'destinatario', 'origen', 'asignadoA', 'numero_oficio', 'files','file_id','files_edit', 'fecha_termino');
+        $this->reset('selected_id', 'asunto', 'destinatario', 'origen', 'asignadoA', 'numero_oficio', 'files','file_id','files_edit', 'fecha_termino',  'modal','modalDelete', 'modalDeleteFile');
         $this->resetErrorBag();
         $this->resetValidation();
-    }
-
-    public function openModalCreate(){
-
-        $this->resetAll();
-
-        $this->edit = false;
-        $this->create = true;
-        $this->modal = true;
     }
 
     public function openModalEdit($entrie){
@@ -100,15 +74,15 @@ class Entries extends Component
 
         $this->create = false;
 
-        $this->entrie_id = $entrie['id'];
-        $this->folio = $entrie['folio'];
+        $this->selected_id = $entrie['id'];
         $this->numero_oficio = $entrie['numero_oficio'];
         $this->asunto = $entrie['asunto'];
         $this->destinatario = $entrie['destinatario_id'];
         $this->origen = $entrie['origen_id'];
-        $this->asignadoA = $entrie['asignacion'];
-        $this->fecha_termino = $entrie['fecha_termino'];
-        $this->auxUser = $entrie['asignacion'];
+        $this->fecha_termino = Carbon::createFromFormat('d-m-Y', $entrie['fecha_termino'])->format('Y-m-d');
+        foreach($entrie['asignado_a'] as $user){
+            array_push($this->asignadoA, (string)$user['id']);
+        }
 
         $this->files_edit = $entrie['files'];
 
@@ -116,48 +90,32 @@ class Entries extends Component
         $this->modal = true;
     }
 
-    public function openModalDelete($entrie){
+    public function sendWhastapp($folio, $telefono){
 
-        $this->modalDelete = true;
-        $this->entrie_id = $entrie['id'];
-    }
 
-    public function openModalDeleteFile($file){
+        $mensaje = "https://api.whatsapp.com/send?phone=+521" . $telefono . "&text=Se%20te%20ha%20asignado%20la%20entrada%20con%20folio%20" . $folio . ".%20Visita%20el%20portal.%0A";
 
-        $this->modalDeleteFile = true;
-        $this->file_id = $file;
-
-    }
-
-    public function closeModal(){
-        $this->resetall();
-        $this->modal = false;
-        $this->modalDelete = false;
-        $this->modalDeleteFile = false;
-    }
-
-    public function sendWhastapp($entrie){
-
-        $mensaje = "https://api.whatsapp.com/send?phone=+521" . $entrie->asignadoA->telefono . "&text=Se%20te%20ha%20asignado%20la%20entrada%20con%20folio%20" . $entrie->folio . ".%20Visita%20el%20portal.%0A";
-
-        $this->dispatchBrowserEvent('sendWhatsApp',$mensaje);
+        $this->dispatchBrowserEvent('sendWhatsApp', $mensaje);
 
     }
 
     public function create(){
 
+
         $this->validate();
 
         try {
 
+            $folio = Entrie::orderBy('folio', 'desc')->value('folio');
+
             $entrie = Entrie::create([
-                'folio' => $this->folio,
+                'folio' => $folio ? $folio + 1 : 1,
                 'asunto' => $this->asunto,
                 'numero_oficio' => $this->numero_oficio,
                 'destinatario_id' => $this->destinatario,
                 'fecha_termino' => $this->fecha_termino,
                 'origen_id' => $this->origen,
-                'asignacion' => $this->asignadoA,
+                'office_id' => auth()->user()->office ? auth()->user()->office->id : auth()->user()->officeBelonging->id,
                 'created_by' => auth()->user()->id,
             ]);
 
@@ -177,20 +135,17 @@ class Entries extends Component
                 $this->dispatchBrowserEvent('removeFiles');
             }
 
-            $user = $entrie->asignadoA;
+            $entrie->asignadoA()->attach($this->asignadoA);
 
-            $user->notify( new NotifyUserAsignation() );
+            $this->dispatchBrowserEvent('showMessage',['success', "La entrada ha sido creado con éxito."]);
 
-            $this->dispatchBrowserEvent('showMessage',['success', "La entrada ha sido creado con exito."]);
-
-            $this->sendWhastapp($entrie);
-
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
     }
 
@@ -200,16 +155,14 @@ class Entries extends Component
 
         try {
 
-            $entrie = Entrie::findorFail($this->entrie_id);
+            $entrie = Entrie::findorFail($this->selected_id);
 
             $entrie->update([
-                'folio' => $this->folio,
                 'asunto' => $this->asunto,
                 'numero_oficio' => $this->numero_oficio,
                 'fecha_termino' => $this->fecha_termino,
                 'destinatario_id' => $this->destinatario,
                 'origen_id' => $this->origen,
-                'asignacion' => $this->asignadoA,
                 'updated_by' => auth()->user()->id,
             ]);
 
@@ -229,24 +182,17 @@ class Entries extends Component
                 $this->dispatchBrowserEvent('removeFiles');
             }
 
-            if($this->auxUser != $entrie->asignado_a){
+            $entrie->asignadoA()->sync($this->asignadoA);
 
-                $user = $entrie->asignadoA;
+            $this->dispatchBrowserEvent('showMessage',['success', "La entrada ha sido actualizado con éxito."]);
 
-                $user->notify( new NotifyUserAsignation() );
-
-                $this->sendWhastapp($entrie);
-
-            }
-
-            $this->dispatchBrowserEvent('showMessage',['success', "La entrada ha sido actualizado con exito."]);
-
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
 
     }
@@ -255,18 +201,19 @@ class Entries extends Component
 
         try {
 
-            $entrie = Entrie::findorFail($this->entrie_id);
+            $entrie = Entrie::findorFail($this->selected_id);
 
             $entrie->delete();
 
-            $this->dispatchBrowserEvent('showMessage',['success', "La entrada ha sido eliminado con exito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "La entrada ha sido eliminado con éxito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
     }
 
@@ -276,29 +223,33 @@ class Entries extends Component
 
             $file = File::findorFail($this->file_id);
 
+            Storage::disk('pdfs')->delete($file->url);
+
             $file->delete();
 
-            $this->dispatchBrowserEvent('showMessage',['success', "El archivo ha sido eliminado con exito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "El archivo ha sido eliminado con éxito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
     }
 
     public function render()
     {
 
-        if(auth()->user()->roles[0]->name == 'Director' || auth()->user()->roles[0]->name == 'Coordinador'){
+        if(auth()->user()->roles[0]->name == 'Titular'){
 
             $entries = Entrie::with('createdBy', 'updatedBy', 'origen', 'destinatario', 'asignadoA', 'trackings', 'conclusions', 'files')
-                            ->where('asignacion', auth()->user()->id)
+                            ->where('created_by', auth()->user()->id)
                             ->where(function($q){
                                 return $q->where('folio', 'LIKE', '%' . $this->search . '%')
                                             ->orWhere('asunto','LIKE', '%' . $this->search . '%')
+                                            ->orWhere('numero_oficio','LIKE', '%' . $this->search . '%')
                                             ->orWhere(function($q){
                                                 return $q->whereHas('destinatario', function($q){
                                                     return $q->where('name', 'LIKE', '%' . $this->search . '%');
@@ -318,10 +269,13 @@ class Entries extends Component
                             ->orderBy($this->sort, $this->direction)
                             ->paginate($this->pagination);
 
-        }else{
+            $users = User::where('created_by', auth()->user()->id)->get();
+
+        }elseif(auth()->user()->roles[0]->name == 'Administrador'){
 
             $entries = Entrie::with('createdBy', 'updatedBy', 'origen', 'destinatario', 'asignadoA', 'trackings', 'conclusions', 'files')
                             ->where('folio', 'LIKE', '%' . $this->search . '%')
+                            ->orWhere('numero_oficio','LIKE', '%' . $this->search . '%')
                             ->orWhere('asunto','LIKE', '%' . $this->search . '%')
                             ->orWhere(function($q){
                                 return $q->whereHas('destinatario', function($q){
@@ -340,12 +294,79 @@ class Entries extends Component
                             })
                             ->orderBy($this->sort, $this->direction)
                             ->paginate($this->pagination);
+
+
+            $users = User::all();
+
+        }elseif(auth()->user()->roles[0]->name == 'Oficialia de partes'){
+
+            $entries = Entrie::with('createdBy', 'updatedBy', 'origen', 'destinatario', 'asignadoA', 'trackings', 'conclusions', 'files')
+                            ->where('created_by', auth()->user()->id)
+                            ->where(function($q){
+                                return $q->where('folio', 'LIKE', '%' . $this->search . '%')
+                                            ->orWhere('asunto','LIKE', '%' . $this->search . '%')
+                                            ->orWhere('numero_oficio','LIKE', '%' . $this->search . '%')
+                                            ->orWhere(function($q){
+                                                return $q->whereHas('destinatario', function($q){
+                                                    return $q->where('name', 'LIKE', '%' . $this->search . '%');
+                                                });
+                                            })
+                                            ->orWhere(function($q){
+                                                return $q->whereHas('origen', function($q){
+                                                    return $q->where('name', 'LIKE', '%' . $this->search . '%');
+                                                });
+                                            })
+                                            ->orWhere(function($q){
+                                                return $q->whereHas('asignadoA', function($q){
+                                                    return $q->where('name', 'LIKE', '%' . $this->search . '%');
+                                                });
+                                            });
+                            })
+                            ->orderBy($this->sort, $this->direction)
+                            ->paginate($this->pagination);
+
+            $users = User::whereHas('roles', function($q){
+                                return $q->where('name', 'Titular');
+                            })->get();
+
+        }else{
+
+            $entries = Entrie::with('createdBy', 'updatedBy', 'origen', 'destinatario', 'asignadoA', 'trackings', 'conclusions', 'files')
+                                ->where(function($q){
+                                    return $q->whereHas('asignadoA', function($q){
+                                        return $q->where('users.id', '=', auth()->user()->id);
+                                    });
+                                })
+                                ->where(function($q){
+                                    return $q->where('folio', 'LIKE', '%' . $this->search . '%')
+                                                ->orWhere('numero_oficio','LIKE', '%' . $this->search . '%')
+                                                ->orWhere('asunto','LIKE', '%' . $this->search . '%')
+                                                ->orWhere(function($q){
+                                                    return $q->whereHas('destinatario', function($q){
+                                                        return $q->where('name', 'LIKE', '%' . $this->search . '%');
+                                                    });
+                                                })
+                                                ->orWhere(function($q){
+                                                    return $q->whereHas('origen', function($q){
+                                                        return $q->where('name', 'LIKE', '%' . $this->search . '%');
+                                                    });
+                                                })
+                                                ->orWhere(function($q){
+                                                    return $q->whereHas('asignadoA', function($q){
+                                                        return $q->where('name', 'LIKE', '%' . $this->search . '%');
+                                                    });
+                                                });
+                                })
+                                ->orderBy($this->sort, $this->direction)
+                                ->paginate($this->pagination);
+
+            $users = [];
         }
 
-        $users = User::all();
+        $dependencies = Dependency::orderBy('name')->get();
 
-        $dependencies = Dependency::all();
+        $offices = Office::orderBy('name')->get();
 
-        return view('livewire.entries', compact('entries', 'users', 'dependencies'));
+        return view('livewire.entries', compact('entries', 'users', 'dependencies', 'offices'));
     }
 }

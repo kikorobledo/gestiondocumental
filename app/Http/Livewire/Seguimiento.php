@@ -2,30 +2,24 @@
 
 namespace App\Http\Livewire;
 
+use Carbon\Carbon;
 use App\Models\File;
 use App\Models\Entrie;
 use Livewire\Component;
 use App\Models\Tracking;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
+use Illuminate\Support\Collection;
+use App\Http\Traits\ComponentesTrait;
+use Illuminate\Support\Facades\Storage;
 
 class Seguimiento extends Component
 {
 
     use WithPagination;
     use WithFileUploads;
+    use ComponentesTrait;
 
-    public $modal = false;
-    public $modalDelete = false;
-    public $modalDeleteFile = false;
-    public $create = false;
-    public $edit = false;
-    public $search;
-    public $sort = 'id';
-    public $direction = 'desc';
-    public $pagination=10;
-
-    public $tracking_id;
     public $oficio_respuesta;
     public $fecha_respuesta;
     public $comentario;
@@ -38,7 +32,7 @@ class Seguimiento extends Component
         return[
             'oficio_respuesta' => 'required',
             'fecha_respuesta' => 'required',
-            'comentario' => 'required',
+            'comentario' => 'required|not_in:<p><br></p>',
             'entrie_id' => 'required',
             'files.*' => 'mimes:pdf'
         ];
@@ -47,40 +41,22 @@ class Seguimiento extends Component
     protected $messages = [
         'oficio_respuesta.required' => 'El campo oficio de respuesta es obligatorio.',
         'fecha_respuesta.required' => 'El campo fecha de respuesta es obligatorio.',
-        'files.*.mimes' => 'Solo se admiten archivos PDF'
+        'files.*.mimes' => 'Solo se admiten archivos PDF',
+        'comentario.not_in' => 'El comentario es obligatorio'
     ];
 
-    public function updatingSearch(){
-        $this->resetPage();
-    }
+    public function updatedComentario(){
 
-    public function order($sort){
+        $this->comentario = str_replace("'", "\"", $this->comentario);
 
-        if($this->sort == $sort){
-            if($this->direction == 'desc'){
-                $this->direction = 'asc';
-            }else{
-                $this->direction = 'desc';
-            }
-        }else{
-            $this->sort = $sort;
-            $this->direction = 'asc';
-        }
+        $this->dispatchBrowserEvent('quill-get');
+
     }
 
     public function resetAll(){
-        $this->reset('oficio_respuesta','fecha_respuesta','comentario','entrie_id','tracking_id','files','file_id','files_edit');
+        $this->reset('oficio_respuesta','fecha_respuesta','comentario','entrie_id','selected_id','files','file_id','files_edit','modal','modalDelete', 'modalDeleteFile');
         $this->resetErrorBag();
         $this->resetValidation();
-    }
-
-    public function openModalCreate(){
-
-        $this->resetAll();
-
-        $this->edit = false;
-        $this->modal = true;
-        $this->create = true;
     }
 
     public function openModalEdit($tracking){
@@ -89,9 +65,9 @@ class Seguimiento extends Component
 
         $this->create = false;
 
-        $this->tracking_id = $tracking['id'];
+        $this->selected_id = $tracking['id'];
         $this->oficio_respuesta = $tracking['oficio_respuesta'];
-        $this->fecha_respuesta = $tracking['fecha_respuesta'];
+        $this->fecha_respuesta = Carbon::createFromFormat('d-m-Y', $tracking['fecha_respuesta'])->format('Y-m-d');
         $this->comentario = $tracking['comentario'];
         $this->entrie_id = $tracking['entrie_id'];
         $this->files_edit = $tracking['files'];
@@ -101,43 +77,18 @@ class Seguimiento extends Component
 
     }
 
-    public function openModalDelete($tracking){
-
-        $this->modalDelete = true;
-        $this->tracking_id = $tracking['id'];
-
-    }
-
-    public function openModalDeleteFile($file){
-
-        $this->modalDeleteFile = true;
-        $this->file_id = $file;
-
-    }
-
-    public function closeModal(){
-
-        $this->resetAll();
-
-        $this->modal = false;
-
-        $this->modalDelete = false;
-
-        $this->modalDeleteFile = false;
-    }
-
     public function create(){
 
         $this->validate();
 
         try {
 
-
             $tracking = Tracking::create([
                 'oficio_respuesta' => $this->oficio_respuesta,
                 'fecha_respuesta' => $this->fecha_respuesta,
                 'comentario' => $this->comentario,
                 'entrie_id' => $this->entrie_id,
+                'office_id' => auth()->user()->office ? auth()->user()->office->id : auth()->user()->officeBelonging->id,
                 'created_by' => auth()->user()->id,
             ]);
 
@@ -157,26 +108,25 @@ class Seguimiento extends Component
                 $this->dispatchBrowserEvent('removeFiles');
             }
 
-            $this->dispatchBrowserEvent('showMessage',['success', "El seguimiento ha sido creado con exito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "El seguimiento ha sido creado con éxito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
     }
 
     public function update(){
 
-
-
         $this->validate();
 
         try {
 
-            $tracking = Tracking::findorFail($this->tracking_id);
+            $tracking = Tracking::findorFail($this->selected_id);
 
             $tracking->update([
                 'oficio_respuesta' => $this->oficio_respuesta,
@@ -202,14 +152,15 @@ class Seguimiento extends Component
                 $this->dispatchBrowserEvent('removeFiles');
             }
 
-            $this->dispatchBrowserEvent('showMessage',['success', "El seguimiento ha sido actualizado con exito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "El seguimiento ha sido actualizado con éxito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
 
     }
@@ -218,18 +169,26 @@ class Seguimiento extends Component
 
         try {
 
-            $tracking = Tracking::findorFail($this->tracking_id);
+            $tracking = Tracking::findorFail($this->selected_id);
+
+            foreach ($tracking->files as $file) {
+
+                Storage::disk('pdfs')->delete($file->url);
+
+                $file->delete();
+            }
 
             $tracking->delete();
 
-            $this->dispatchBrowserEvent('showMessage',['success', "El seguimiento ha sido eliminado con exito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "El seguimiento ha sido eliminado con éxito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
     }
 
@@ -239,29 +198,35 @@ class Seguimiento extends Component
 
             $file = File::findorFail($this->file_id);
 
+            Storage::disk('pdfs')->delete($file->url);
+
             $file->delete();
 
-            $this->dispatchBrowserEvent('showMessage',['success', "El archivo ha sido eliminado con exito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "El archivo ha sido eliminado con éxito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
     }
 
     public function render()
     {
 
-        if(auth()->user()->roles[0]->name == 'Director' || auth()->user()->roles[0]->name == 'Coordinador'){
+        if(auth()->user()->roles[0]->name == 'Titular'){
 
             $trackings = Tracking::with('entrie','createdBy', 'updatedBy', 'files')
-                                ->where('created_by', auth()->user()->id)
+                                ->whereHas('entrie', function($q){
+                                    return $q->where('created_by', auth()->user()->id);
+                                })
                                 ->where(function($q){
                                     return $q->where('oficio_respuesta','LIKE', '%' . $this->search . '%')
                                                 ->orWhere('fecha_respuesta','LIKE', '%' . $this->search . '%')
+                                                ->orWhere('comentario','LIKE', '%' . $this->search . '%')
                                                 ->orWhere(function($q){
                                                     return $q->whereHas('entrie', function($q){
                                                         return $q->where('folio', 'LIKE', '%' . $this->search . '%');
@@ -271,13 +236,14 @@ class Seguimiento extends Component
                                 ->orderBy($this->sort, $this->direction)
                                 ->paginate($this->pagination);
 
-            $entries = Entrie::where('asignacion', auth()->user()->id)->get();
+            $entries = Entrie::where('created_by', auth()->user()->id)->get();
 
-        }else{
+        }elseif(auth()->user()->roles[0]->name == 'Administrador'){
 
             $trackings = Tracking::with('entrie','createdBy', 'updatedBy', 'files')
                                 ->where('oficio_respuesta','LIKE', '%' . $this->search . '%')
                                 ->orWhere('fecha_respuesta','LIKE', '%' . $this->search . '%')
+                                ->orWhere('comentario','LIKE', '%' . $this->search . '%')
                                 ->orWhere(function($q){
                                     return $q->whereHas('entrie', function($q){
                                         return $q->where('folio', 'LIKE', '%' . $this->search . '%');
@@ -287,6 +253,34 @@ class Seguimiento extends Component
                                 ->paginate($this->pagination);
 
             $entries = Entrie::all();
+
+        }else{
+
+            $entries = Entrie::with('trackings')->whereHas('asignadoA', function($q){
+                                        return $q->where('users.id', '=', auth()->user()->id);
+                                    })->get();
+
+
+            $trackings = Tracking::with('entrie','createdBy', 'updatedBy', 'files')
+                                    ->whereHas('entrie', function($q){
+                                        return $q->whereHas('asignadoA', function($q){
+                                            return $q->where('users.id', '=', auth()->user()->id);
+                                        });
+                                    })
+                                    ->where('created_by', auth()->user()->id)
+                                    ->where(function($q){
+                                        return $q->where('oficio_respuesta','LIKE', '%' . $this->search . '%')
+                                                    ->orWhere('fecha_respuesta','LIKE', '%' . $this->search . '%')
+                                                    ->orWhere('comentario','LIKE', '%' . $this->search . '%')
+                                                    ->orWhere(function($q){
+                                                        return $q->whereHas('entrie', function($q){
+                                                            return $q->where('folio', 'LIKE', '%' . $this->search . '%');
+                                                        });
+                                                    });
+                                    })
+                                    ->orderBy($this->sort, $this->direction)
+                                    ->paginate($this->pagination);
+
         }
 
         return view('livewire.seguimiento', compact('entries', 'trackings'));

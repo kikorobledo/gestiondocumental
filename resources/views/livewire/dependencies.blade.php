@@ -336,9 +336,9 @@
                 @endif
 
                 <button
-                    wire:click="closeModal"
+                    wire:click="resetAll"
                     wire:loading.attr="disabled"
-                    wire:target="closeModal"
+                    wire:target="resetAll"
                     type="button"
                     class="bg-red-400 hover:shadow-lg text-white font-bold px-4 py-2 rounded-full text-sm mb-2 hover:bg-red-700 flaot-left focus:outline-none">
                     Cerrar

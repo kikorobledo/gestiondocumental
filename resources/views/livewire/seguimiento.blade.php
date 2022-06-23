@@ -262,7 +262,7 @@
 
                                 <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Comentario</span>
 
-                                {{ $tracking->comentario }}
+                                {{ $tracking->limit }}
 
                             </td>
 
@@ -280,7 +280,7 @@
 
                                 <div class="md:space-y-1 flex flex-grow-0 md:flex-col justify-center text-center items-center">
 
-                                    @foreach ($entrie->files as $file)
+                                    @foreach ($tracking->files as $file)
                                         <a
                                             href="{{ Storage::disk('pdfs')->url($file->url)}}"
                                             target="_blank"
@@ -414,9 +414,9 @@
         <x-slot name="title">
 
             @if($create)
-                Nuevo Usuario
+                Nuevo Seguimiento
             @elseif($edit)
-                Editar Usuario
+                Editar Seguimiento
             @endif
 
         </x-slot>
@@ -472,7 +472,7 @@
 
                     <div>
 
-                        <Label>Entrada</Label>
+                        <Label>Entrada / Folio</Label>
 
                     </div>
 
@@ -514,7 +514,7 @@
 
                     <div>
 
-                        <textarea rows="5" wire:model.defer="comentario" class="bg-white rounded text-sm w-full"></textarea>
+                        <x-quill-text wire:model="comentario" :initial-value="$comentario"/>
 
                     </div>
 
@@ -604,9 +604,9 @@
                 @endif
 
                 <button
-                    wire:click="closeModal"
+                    wire:click="resetAll"
                     wire:loading.attr="disabled"
-                    wire:target="closeModal"
+                    wire:target="resetAll"
                     type="button"
                     class="bg-red-400 hover:shadow-lg text-white font-bold px-4 py-2 rounded-full text-sm mb-2 hover:bg-red-700 flaot-left focus:outline-none">
                     Cerrar

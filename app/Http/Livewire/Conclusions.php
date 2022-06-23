@@ -2,30 +2,23 @@
 
 namespace App\Http\Livewire;
 
+
 use App\Models\File;
 use App\Models\Entrie;
 use Livewire\Component;
 use App\Models\Conclusion;
 use Livewire\WithPagination;
 use Livewire\WithFileUploads;
+use App\Http\Traits\ComponentesTrait;
+use Illuminate\Support\Facades\Storage;
 
 class Conclusions extends Component
 {
 
     use WithPagination;
     use WithFileUploads;
+    use ComponentesTrait;
 
-    public $modal = false;
-    public $modalDelete = false;
-    public $modalDeleteFile = false;
-    public $create = false;
-    public $edit = false;
-    public $search;
-    public $sort = 'id';
-    public $direction = 'desc';
-    public $pagination=10;
-
-    public $conclusions_id;
     public $comentario;
     public $entrie_id;
     public $files = [];
@@ -34,45 +27,29 @@ class Conclusions extends Component
 
     protected function rules(){
         return[
-            'comentario' => 'required',
+            'comentario' => 'required|not_in:<p><br></p>',
+            'entrie_id' => 'required'
         ];
     }
 
     protected $messages = [
-        'files.*.mimes' => 'Solo se admiten archivos PDF'
+        'files.*.mimes' => 'Solo se admiten archivos PDF',
+        'entrie_id.required' => 'La entrada es obligatoria',
+        'comentario.not_in' => 'El comentario es obligatorio'
     ];
 
-    public function updatingSearch(){
-        $this->resetPage();
-    }
+    public function updatedComentario(){
 
-    public function order($sort){
+        $this->comentario = str_replace("'", "\"", $this->comentario);
 
-        if($this->sort == $sort){
-            if($this->direction == 'desc'){
-                $this->direction = 'asc';
-            }else{
-                $this->direction = 'desc';
-            }
-        }else{
-            $this->sort = $sort;
-            $this->direction = 'asc';
-        }
+        $this->dispatchBrowserEvent('quill-get');
+
     }
 
     public function resetAll(){
-        $this->reset('comentario', 'conclusions_id','files','file_id','files_edit','entrie_id');
+        $this->reset('comentario', 'selected_id','files','file_id','files_edit','entrie_id', 'modal','modalDelete', 'modalDeleteFile');
         $this->resetErrorBag();
         $this->resetValidation();
-    }
-
-    public function openModalCreate(){
-
-        $this->resetAll();
-
-        $this->edit = false;
-        $this->modal = true;
-        $this->create = true;
     }
 
     public function openModalEdit($conclusion){
@@ -81,7 +58,7 @@ class Conclusions extends Component
 
         $this->create = false;
 
-        $this->conclusions_id = $conclusion['id'];
+        $this->selected_id = $conclusion['id'];
         $this->comentario = $conclusion['comentario'];
         $this->entrie_id = $conclusion['entrie_id'];
         $this->files_edit = $conclusion['files'];
@@ -89,31 +66,6 @@ class Conclusions extends Component
         $this->edit = true;
         $this->modal = true;
 
-    }
-
-    public function openModalDelete($conclusion){
-
-        $this->modalDelete = true;
-        $this->conclusions_id = $conclusion['id'];
-
-    }
-
-    public function openModalDeleteFile($file){
-
-        $this->modalDeleteFile = true;
-        $this->file_id = $file;
-
-    }
-
-    public function closeModal(){
-
-        $this->resetAll();
-
-        $this->modal = false;
-
-        $this->modalDelete = false;
-
-        $this->modalDeleteFile = false;
     }
 
     public function create(){
@@ -126,6 +78,7 @@ class Conclusions extends Component
             $conclusion = Conclusion::create([
                 'comentario' => $this->comentario,
                 'entrie_id' => $this->entrie_id,
+                'office_id' => auth()->user()->office ? auth()->user()->office->id : auth()->user()->officeBelonging->id,
                 'created_by' => auth()->user()->id,
             ]);
 
@@ -145,26 +98,25 @@ class Conclusions extends Component
                 $this->dispatchBrowserEvent('removeFiles');
             }
 
-            $this->dispatchBrowserEvent('showMessage',['success', "La conclusión ha sido creado con exito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "La conclusión ha sido creado con éxito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
     }
 
     public function update(){
 
-
-
         $this->validate();
 
         try {
 
-            $conclusion = Conclusion::findorFail($this->conclusions_id);
+            $conclusion = Conclusion::findorFail($this->selected_id);
 
             $conclusion->update([
                 'comentario' => $this->comentario,
@@ -188,14 +140,15 @@ class Conclusions extends Component
                 $this->dispatchBrowserEvent('removeFiles');
             }
 
-            $this->dispatchBrowserEvent('showMessage',['success', "La conclusión ha sido actualizado con exito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "La conclusión ha sido actualizado con éxito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
 
     }
@@ -204,18 +157,25 @@ class Conclusions extends Component
 
         try {
 
-            $conclusion = Conclusion::findorFail($this->conclusions_id);
+            $conclusion = Conclusion::findorFail($this->selected_id);
+
+            foreach ($conclusion->files as $file) {
+
+                Storage::disk('pdfs')->delete($file->url);
+
+                $file->delete();
+            }
 
             $conclusion->delete();
 
             $this->dispatchBrowserEvent('showMessage',['success', "La conclusión ha sido eliminado con exito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
     }
 
@@ -225,26 +185,30 @@ class Conclusions extends Component
 
             $file = File::findorFail($this->file_id);
 
+            Storage::disk('pdfs')->delete($file->url);
+
             $file->delete();
 
             $this->dispatchBrowserEvent('showMessage',['success', "El archivo ha sido eliminado con exito."]);
 
-            $this->closeModal();
+            $this->resetAll();
 
         } catch (\Throwable $th) {
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
-            $this->closeModal();
+            $this->resetAll();
         }
     }
 
     public function render()
     {
 
-        if(auth()->user()->roles[0]->name == 'Director' || auth()->user()->roles[0]->name == 'Coordinador'){
+        if(auth()->user()->roles[0]->name == 'Titular'){
 
             $conclusions = Conclusion::with('entrie', 'createdBy', 'updatedBy', 'files')
-                                    ->where('created_by', auth()->user()->id)
+                                    ->whereHas('entrie', function($q){
+                                        return $q->where('created_by', auth()->user()->id);
+                                    })
                                     ->where(function($q){
                                         return $q->where('comentario','LIKE', '%' . $this->search . '%')
                                                     ->orWhere(function($q){
@@ -256,9 +220,9 @@ class Conclusions extends Component
                                     ->orderBy($this->sort, $this->direction)
                                     ->paginate($this->pagination);
 
-            $entries = Entrie::where('asignacion', auth()->user()->id)->get();
+            $entries = Entrie::where('created_by', auth()->user()->id)->get();
 
-        }else{
+        }elseif(auth()->user()->roles[0]->name == 'Administrador'){
 
             $conclusions = Conclusion::with('entrie', 'createdBy', 'updatedBy', 'files')
                                     ->where('comentario','LIKE', '%' . $this->search . '%')
@@ -271,6 +235,30 @@ class Conclusions extends Component
                                     ->paginate($this->pagination);
 
             $entries = Entrie::all();
+
+        }else{
+
+            $entries = Entrie::with('trackings')->whereHas('asignadoA', function($q){
+                                                        return $q->where('users.id', '=', auth()->user()->id);
+                                                    })->get();
+
+            $conclusions = Conclusion::with('entrie','createdBy', 'updatedBy', 'files')
+                        ->whereHas('entrie', function($q){
+                            return $q->whereHas('asignadoA', function($q){
+                                return $q->where('users.id', '=', auth()->user()->id);
+                            });
+                        })
+                        ->where('created_by', auth()->user()->id)
+                        ->where(function($q){
+                            return $q->where('comentario','LIKE', '%' . $this->search . '%')
+                                        ->orWhere(function($q){
+                                            return $q->whereHas('entrie', function($q){
+                                                return $q->where('folio', 'LIKE', '%' . $this->search . '%');
+                                            });
+                                        });
+                        })
+                        ->orderBy($this->sort, $this->direction)
+                        ->paginate($this->pagination);
 
         }
 

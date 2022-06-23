@@ -3,7 +3,9 @@
 namespace App\Models;
 
 use Carbon\Carbon;
+use Illuminate\Support\Str;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Tracking extends Model
@@ -36,7 +38,13 @@ class Tracking extends Model
         return Carbon::createFromFormat('Y-m-d H:i:s', $this->attributes['updated_at'])->format('d-m-Y H:i:s');
     }
 
-    /* public function getFechaRespuestaAttribute(){
-        return Carbon::parse($this->attributes['fecha_respuesta'])->format('d/m/Y');
-    } */
+    protected function limit(): Attribute{
+        return Attribute::make(
+            get: fn($value) => Str::limit(strip_tags($this->comentario), 100)
+        );
+    }
+
+    public function getFechaRespuestaAttribute(){
+        return Carbon::createFromFormat('Y-m-d', $this->attributes['fecha_respuesta'])->format('d-m-Y');
+    }
 }

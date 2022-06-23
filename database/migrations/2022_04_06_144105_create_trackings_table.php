@@ -18,7 +18,8 @@ return new class extends Migration
             $table->string('oficio_respuesta');
             $table->date('fecha_respuesta');
             $table->text('comentario');
-            $table->foreignId('entrie_id')->nullable()->constrained()->references('id')->on('entries');
+            $table->foreignId('entrie_id')->constrained()->onDelete('cascade');
+            $table->foreignId('office_id')->nullable()->constrained();
             $table->foreignId('created_by')->nullable()->constrained()->references('id')->on('users');
             $table->foreignId('updated_by')->nullable()->constrained()->references('id')->on('users');
             $table->timestamps();

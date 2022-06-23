@@ -23,6 +23,9 @@ class SetPasswordController extends Controller
 
         $user = User::where('email', $request->email)->first();
 
+        if(!$user)
+            return redirect()->route('login')->with('message', 'El correo proporcionado no se encuentra registrado.');
+
         $user->update([
             'password' => bcrypt($request->password)
         ]);

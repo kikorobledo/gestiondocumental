@@ -2,7 +2,10 @@
 
 namespace App\Models;
 
+use App\Http\Traits\ModelsTrait;
 use Carbon\Carbon;
+use App\Models\Entrie;
+use App\Models\Office;
 use App\Models\Dependency;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Jetstream\HasProfilePhoto;
@@ -21,6 +24,7 @@ class User extends Authenticatable
     use HasProfilePhoto;
     use Notifiable;
     use TwoFactorAuthenticatable;
+    use ModelsTrait;
 
     const AREAS = [
         'Roles',
@@ -28,7 +32,8 @@ class User extends Authenticatable
         'Usuarios',
         'Entradas',
         'Dependencias',
-        'Conclusiones'
+        'Conclusiones',
+        'Oficinas'
     ];
 
     const UBICACIONES = [
@@ -46,9 +51,11 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
-        'location_id',
+        'office_id',
         'status',
-        'telefono'
+        'telefono',
+        'created_by',
+        'updated_by'
     ];
 
     /**
@@ -81,23 +88,16 @@ class User extends Authenticatable
         'profile_photo_url',
     ];
 
-    public function location(){
-        return $this->belongsTo(Dependency::class, 'location_id');
+    public function office(){
+        return $this->hasOne(Office::class);
     }
 
-    public function createdBy(){
-        return $this->belongsTo(User::class, 'created_by');
+    public function officeBelonging(){
+        return $this->belongsTo(Office::class, 'office_id');
     }
 
-    public function updatedBy(){
-        return $this->belongsTo(User::class, 'updated_by');
+    public function entries(){
+        return $this->belongsToMany(Entrie::class);
     }
 
-    public function getCreatedAtAttribute(){
-        return Carbon::createFromFormat('Y-m-d H:i:s', $this->attributes['created_at'])->format('d-m-Y H:i:s');
-    }
-
-    public function getUpdatedAtAttribute(){
-        return Carbon::createFromFormat('Y-m-d H:i:s', $this->attributes['updated_at'])->format('d-m-Y H:i:s');
-    }
 }

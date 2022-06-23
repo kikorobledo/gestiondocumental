@@ -13,15 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('entries', function (Blueprint $table) {
+        Schema::create('offices', function (Blueprint $table) {
             $table->id();
-            $table->unsignedInteger('folio');
-            $table->string('numero_oficio');
-            $table->text('asunto');
-            $table->date('fecha_termino')->nullable();
-            $table->foreignId('destinatario_id')->nullable()->constrained()->references('id')->on('offices');
-            $table->foreignId('origen_id')->nullable()->constrained()->references('id')->on('dependencies');
-            $table->foreignId('office_id')->nullable()->constrained();
+            $table->string('name')->unique();
+            $table->foreignId('user_id')->nullable()->constrained()->onDelete('set null');
             $table->foreignId('created_by')->nullable()->constrained()->references('id')->on('users');
             $table->foreignId('updated_by')->nullable()->constrained()->references('id')->on('users');
             $table->timestamps();
@@ -35,6 +30,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('entries');
+        Schema::dropIfExists('offices');
     }
 };

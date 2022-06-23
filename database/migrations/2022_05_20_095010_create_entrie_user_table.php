@@ -13,13 +13,10 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::create('conclusions', function (Blueprint $table) {
+        Schema::create('entrie_user', function (Blueprint $table) {
             $table->id();
-            $table->text('comentario');
             $table->foreignId('entrie_id')->constrained()->onDelete('cascade');
-            $table->foreignId('office_id')->nullable()->constrained();
-            $table->foreignId('created_by')->nullable()->constrained()->references('id')->on('users');
-            $table->foreignId('updated_by')->nullable()->constrained()->references('id')->on('users');
+            $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->timestamps();
         });
     }
@@ -31,6 +28,6 @@ return new class extends Migration
      */
     public function down()
     {
-        Schema::dropIfExists('conclusions');
+        Schema::dropIfExists('entrie_user');
     }
 };

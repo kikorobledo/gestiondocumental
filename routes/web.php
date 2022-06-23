@@ -1,9 +1,11 @@
 <?php
 
+use App\Http\Livewire\Offices;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\RoleController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\EntrieController;
+use App\Http\Controllers\ManualController;
 use App\Http\Controllers\TrackingController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ConclusionController;
@@ -29,6 +31,8 @@ Route::get('/', function () {
 Route::get('setpassword/{email}', [SetPasswordController::class, 'create'])->name('setpassword');
 Route::post('setpassword', [SetPasswordController::class, 'store'])->name('setpassword.store');
 
+Route::get('manual', ManualController::class)->name('manual');
+
 Route::group(['middleware' => ['auth','is.active']], function(){
 
     Route::get('dashboard', DashboardController::class)->name('dashboard');
@@ -47,5 +51,7 @@ Route::group(['middleware' => ['auth','is.active']], function(){
 
     Route::get('entries', [EntrieController::class, 'index'])->middleware('can:Lista de entradas')->name('entries.index');
     Route::get('entries/{entrie}', [EntrieController::class, 'show'])->middleware('can:Ver entrada')->name('entries.show');
+
+    Route::get('offices', Offices::class)->middleware('can:Lista de conclusiones')->name('offices');
 
 });

@@ -75,7 +75,7 @@
 
                         <th wire:click="order('numero_oficio')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
 
-                            Número de Oficio
+                            Oficio
 
                             @if($sort == 'numero_oficio')
 
@@ -103,7 +103,7 @@
 
                         </th>
 
-                        <th wire:click="order('asunto')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
+                        <th wire:click="order('asunto')" class="cursor-pointer  py-3 hidden lg:table-cell">
 
                             Asunto
 
@@ -193,40 +193,16 @@
 
                         </th>
 
-                        <th wire:click="order('asignacion')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
+                        <th class="px-3 py-3 hidden lg:table-cell">
 
                             Asignado A
-
-                            @if($sort == 'asignacion')
-
-                                @if($direction == 'asc')
-
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
-                                    </svg>
-
-                                @else
-
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                                    </svg>
-
-                                @endif
-
-                            @else
-
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                </svg>
-
-                            @endif
 
                         </th>
 
 
                         <th wire:click="order('fecha_termino')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
 
-                            Fecha de termino
+                            Fecha de término
 
                             @if($sort == 'fecha_termino')
 
@@ -349,17 +325,17 @@
 
                             <td class="px-3 py-3 w-full lg:w-auto p-3 text-gray-800 text-center lg:text-left lg:border-0 border border-b block lg:table-cell relative lg:static">
 
-                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Número de oficio</span>
+                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Oficio</span>
 
                                 {{ $entrie->numero_oficio }}
 
                             </td>
 
-                            <td class="px-3 py-3 w-full lg:w-auto p-3 text-gray-800 text-center lg:text-left lg:border-0 border border-b block lg:table-cell relative lg:static">
+                            <td class=" py-3 lg:w-auto text-gray-800 text-center lg:text-left lg:border-0 border border-b block lg:table-cell relative lg:static">
 
                                 <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Asunto</span>
 
-                                {{ Str::limit($entrie->asunto, 200) }}
+                               {{ $entrie->limit }}
 
                             </td>
 
@@ -383,15 +359,64 @@
 
                                 <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Asignado A</span>
 
-                                {{ $entrie->asignadoA->name }}
+                                <ul class="list-disc">
+
+                                    @foreach ($entrie->asignadoA as $asignado)
+
+                                        <li>
+
+                                            <div class="flex space-x-3 items-center">
+
+                                                {{ $asignado->name }}
+
+                                                <button
+                                                    wire:click="sendWhastapp('{{ $asignado->telefono }}', '{{ $entrie->folio }}')"
+                                                    wire:loading.attr="disabled"
+                                                    wire:target="sendWhastapp('{{ $asignado }}', '{{ $entrie }}')"
+                                                    class='has-tooltip'
+                                                >
+                                                    <span class='tooltip text-xs rounded shadow-lg p-1 bg-gray-600 text-white'>Avisar por WhatsApp</span>
+                                                    <svg
+                                                        xmlns="http://www.w3.org/2000/svg"
+                                                        class=" h-4 w-4 text-green-700 cursor-pointer"
+                                                        fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                                        <path stroke-linecap="round" stroke-linejoin="round" d="M3 5a2 2 0 012-2h3.28a1 1 0 01.948.684l1.498 4.493a1 1 0 01-.502 1.21l-2.257 1.13a11.042 11.042 0 005.516 5.516l1.13-2.257a1 1 0 011.21-.502l4.493 1.498a1 1 0 01.684.949V19a2 2 0 01-2 2h-1C9.716 21 3 14.284 3 6V5z" />
+                                                    </svg>
+
+                                                </button>
+
+                                            </div>
+
+                                        </li>
+
+                                    @endforeach
+
+                                </ul>
 
                             </td>
 
                             <td class="px-3 py-3 w-full lg:w-auto p-3 text-gray-800 text-center lg:text-left lg:border-0 border border-b block lg:table-cell relative lg:static">
 
-                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Fecha de termino</span>
+                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Fecha de término</span>
 
-                                {{ $entrie->fecha_termino }}
+                                @php
+                                    $fin = \Carbon\Carbon::parse( $entrie->fecha_termino);
+                                    $days = $fin->diffInDays(now());
+                                @endphp
+
+                                @if($days >= 20)
+
+                                    <span class="bg-green-500 text-white px-2 py-1 rounded-full text-xs"><nobr>{{ $entrie->fecha_termino }}</nobr></span>
+
+                                @elseif($days >= 15)
+
+                                    <span class="bg-yellow-500 text-white px-2 py-1 rounded-full text-xs"><nobr>{{ $entrie->fecha_termino }}</nobr></span>
+
+                                @else
+
+                                    <span class="bg-red-500 text-white px-2 py-1 rounded-full text-xs"><nobr>{{ $entrie->fecha_termino }}</nobr></span>
+
+                                @endif
 
                             </td>
 
@@ -401,16 +426,24 @@
 
                                 <div class="md:space-y-1 flex flex-grow-0 md:flex-col justify-center text-center items-center">
 
-                                    @foreach ($entrie->files as $file)
-                                        <a
-                                            href="{{ Storage::disk('pdfs')->url($file->url)}}"
-                                            target="_blank"
-                                            class="bg-red-400 hover:shadow-lg text-white text-xs  px-3 py-1 rounded-full hover:bg-red-700 focus:outline-none mr-2 md:mr-0"
-                                        >
-                                        PDF {{ $loop->iteration }}
-                                        </a>
+                                    @if($entrie->files->count())
 
-                                    @endforeach
+                                        @foreach ($entrie->files as $file)
+                                            <a
+                                                href="{{ Storage::disk('pdfs')->url($file->url)}}"
+                                                target="_blank"
+                                                class="bg-red-400 hover:shadow-lg text-white text-xs  px-3 py-1 rounded-full hover:bg-red-700 focus:outline-none mr-2 md:mr-0"
+                                            >
+                                            PDF {{ $loop->iteration }}
+                                            </a>
+
+                                        @endforeach
+
+                                    @else
+
+                                        S/A
+
+                                    @endif
 
                                 </div>
 
@@ -420,13 +453,13 @@
 
                                 <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Estado</span>
 
-                                @if($entrie->trackings->count())
-
-                                    <span class="bg-green-400 py-1 px-2 rounded-full text-white">Seguimiento</span>
-
-                                @elseif($entrie->conclusions->count())
+                                @if($entrie->conclusions->count())
 
                                     <span class="bg-red-400 py-1 px-2 rounded-full text-white">Concluido</span>
+
+                                @elseif($entrie->trackings->count())
+
+                                    <span class="bg-green-400 py-1 px-2 rounded-full text-white">Seguimiento</span>
 
                                 @else
 
@@ -540,7 +573,7 @@
 
                     <tr>
 
-                        <td colspan="8" class="py-2 px-5">
+                        <td colspan="12" class="py-2 px-5">
                             {{ $entries->links()}}
                         </td>
 
@@ -588,28 +621,7 @@
 
                     <div>
 
-                        <Label>Folio</Label>
-                    </div>
-
-                    <div>
-
-                        <input type="text" class="bg-white rounded text-sm w-full" wire:model.defer="folio">
-
-                    </div>
-
-                    <div>
-
-                        @error('folio') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
-
-                    </div>
-
-                </div>
-
-                <div class="flex-auto ">
-
-                    <div>
-
-                        <Label>Número de oficio</Label>
+                        <Label>Oficio</Label>
 
                     </div>
 
@@ -631,43 +643,7 @@
 
                     <div>
 
-                        <Label>Asignar A</Label>
-
-                    </div>
-
-                    <div>
-
-                        <select class="bg-white rounded text-sm w-full" wire:model.defer="asignadoA">
-
-                            <option value="">Seleccione una opción</option>
-
-                            @foreach ($users as $user)
-
-                                <option value="{{ $user->id }}">{{ $user->name }}</option>
-
-                            @endforeach
-
-                        </select>
-
-                    </div>
-
-                    <div>
-
-                        @error('asignadoA') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
-
-                    </div>
-
-                </div>
-
-            </div>
-
-            <div class="flex flex-col md:flex-row justify-between md:space-x-3 mb-5">
-
-                <div class="flex-auto mr-1 ">
-
-                    <div>
-
-                        <Label>Fecha de termino</Label>
+                        <Label>Fecha de término</Label>
 
                     </div>
 
@@ -684,6 +660,10 @@
                     </div>
 
                 </div>
+
+            </div>
+
+            <div class="flex flex-col md:flex-row justify-between md:space-x-3 mb-5">
 
                 <div class="flex-auto mr-1 ">
 
@@ -732,9 +712,9 @@
 
                             <option value="">Seleccione una opción</option>
 
-                            @foreach ($dependencies as $dependency)
+                            @foreach ($offices as $office)
 
-                                <option value="{{ $dependency->id }}">{{ $dependency->name }}</option>
+                                <option value="{{ $office->id }}">{{ $office->name }}</option>
 
                             @endforeach
 
@@ -755,6 +735,40 @@
 
             <div class="flex-auto mb-5">
 
+                <div class="flex-auto mr-1 ">
+
+                    <div>
+
+                        <Label>Asignar A</Label>
+
+                    </div>
+
+                    <div>
+
+                        <select class="bg-white rounded text-sm w-full" wire:model.defer="asignadoA" multiple>
+
+                            @foreach ($users as $user)
+
+                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+
+                            @endforeach
+
+                        </select>
+
+                    </div>
+
+                    <div>
+
+                        @error('asignadoA') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
+
+                    </div>
+
+                </div>
+
+            </div>
+
+            <div class="flex-auto mb-5">
+
                 <div>
 
                     <Label>Asunto</Label>
@@ -762,7 +776,7 @@
 
                 <div>
 
-                    <textarea class="bg-white rounded text-sm w-full" rows="5" wire:model.defer="asunto"></textarea>
+                    <x-quill-text wire:model="asunto" :initial-value="$asunto"/>
 
                 </div>
 
@@ -846,9 +860,9 @@
                 @endif
 
                 <button
-                    wire:click="closeModal"
+                    wire:click="resetAll"
                     wire:loading.attr="disabled"
-                    wire:target="closeModal"
+                    wire:target="resetAll"
                     type="button"
                     class="bg-red-400 hover:shadow-lg text-white font-bold px-4 py-2 rounded-full text-sm mb-2 hover:bg-red-700 flaot-left focus:outline-none">
                     Cerrar
@@ -866,7 +880,7 @@
         </x-slot>
 
         <x-slot name="content">
-            ¿Esta seguro que desea eliminar la entrada?, No sera posible recuperar la información.
+            ¿Esta seguro que desea eliminar la entrada?, Los seguimientos y conclusiones asociadas a esta entrada seran eliminados. No sera posible recuperar la información.
         </x-slot>
 
         <x-slot name="footer">

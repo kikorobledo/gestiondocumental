@@ -3,3 +3,12 @@
 @import 'tailwindcss/utilities';
 
 @import url(//db.onlinewebfonts.com/c/ad5566fd17858e1297ab7d5771601c5e?family=Gibson);
+
+
+.tooltip {
+    @apply invisible absolute;
+}
+
+.has-tooltip:hover .tooltip {
+    @apply visible z-50;
+}

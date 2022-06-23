@@ -2,16 +2,18 @@
 
 namespace App\Models;
 
-use Carbon\Carbon;
 use App\Models\File;
-use App\Models\User;
 use App\Models\Entrie;
+use Illuminate\Support\Str;
+use App\Http\Traits\ModelsTrait;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Conclusion extends Model
 {
     use HasFactory;
+    use ModelsTrait;
 
     protected $guarded = [];
 
@@ -23,20 +25,10 @@ class Conclusion extends Model
         return $this->morphMany(File::class, 'fileable');
     }
 
-    public function createdBy(){
-        return $this->belongsTo(User::class, 'created_by');
-    }
-
-    public function updatedBy(){
-        return $this->belongsTo(User::class, 'updated_by');
-    }
-
-    public function getCreatedAtAttribute(){
-        return Carbon::createFromFormat('Y-m-d H:i:s', $this->attributes['created_at'])->format('d-m-Y H:i:s');
-    }
-
-    public function getUpdatedAtAttribute(){
-        return Carbon::createFromFormat('Y-m-d H:i:s', $this->attributes['updated_at'])->format('d-m-Y H:i:s');
+    protected function limit(): Attribute{
+        return Attribute::make(
+            get: fn($value) => Str::limit(strip_tags($this->comentario), 100)
+        );
     }
 
 }

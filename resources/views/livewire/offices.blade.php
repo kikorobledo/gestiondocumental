@@ -2,7 +2,7 @@
 
     <div class="mb-5">
 
-        <h1 class="titulo-seccion text-3xl font-thin text-gray-500 mb-3">Conclusiones</h1>
+        <h1 class="titulo-seccion text-3xl font-thin text-gray-500 mb-3">Oficinas</h1>
 
         <div class="flex justify-between">
 
@@ -21,9 +21,9 @@
 
             </div>
 
-            @can('Crear conclusion')
+            @can('Crear oficina')
 
-                <button wire:click="openModalCreate" class="bg-gray-500 hover:shadow-lg hover:bg-gray-700 float-right mb-5 text-sm py-2 px-4 text-white rounded-full focus:outline-none hidden md:block">Agregar nueva Conclusión</button>
+                <button wire:click="openModalCreate" class="bg-gray-500 hover:shadow-lg hover:bg-gray-700 float-right mb-5 text-sm py-2 px-4 text-white rounded-full focus:outline-none hidden md:block">Agregar nueva oficina</button>
 
                 <button wire:click="openModalCreate" class="bg-gray-500 hover:shadow-lg hover:bg-gray-700 float-right mb-5 text-sm py-2 px-4 text-white rounded-full focus:outline-none md:hidden">+</button>
 
@@ -33,7 +33,7 @@
 
     </div>
 
-    @if($conclusions->count())
+    @if($offices->count())
 
         <div class="relative overflow-x-auto rounded-lg shadow-xl">
 
@@ -43,41 +43,11 @@
 
                     <tr class="text-xs font-medium text-gray-500 uppercase text-left traling-wider">
 
-                        <th wire:click="order('comentario')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
+                        <th wire:click="order('name')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
 
-                            Comentario
+                            Nombre
 
-                            @if($sort == 'comentario')
-
-                                @if($direction == 'asc')
-
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
-                                    </svg>
-
-                                @else
-
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                                    </svg>
-
-                                @endif
-
-                            @else
-
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                </svg>
-
-                            @endif
-
-                        </th>
-
-                        <th wire:click="order('entrie_id')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
-
-                            Entrada
-
-                            @if($sort == 'entrie_id')
+                            @if($sort == 'name')
 
                                 @if($direction == 'asc')
 
@@ -103,9 +73,33 @@
 
                         </th>
 
-                        <th class="px-3 py-3 hidden lg:table-cell">
+                        <th wire:click="order('user_id')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
 
-                            Archivios
+                            Titular
+
+                            @if($sort == 'user_id')
+
+                                @if($direction == 'asc')
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
+                                    </svg>
+
+                                @else
+
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
+                                    </svg>
+
+                                @endif
+
+                            @else
+
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
+                                </svg>
+
+                            @endif
 
                         </th>
 
@@ -178,44 +172,27 @@
 
                 <tbody class="divide-y divide-gray-200 flex-1 sm:flex-none ">
 
-                    @foreach($conclusions as $conclusion)
+                    @foreach($offices as $office)
 
                         <tr class="text-sm font-medium text-gray-500 bg-white flex lg:table-row flex-row lg:flex-row flex-wrap lg:flex-no-wrap mb-10 lg:mb-0">
 
                             <td class="px-3 py-3 w-full lg:w-auto p-3 text-gray-800 text-center lg:text-left lg:border-0 border border-b block lg:table-cell relative lg:static">
 
-                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Comentario</span>
+                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Nombre</span>
 
-                                {{ $conclusion->limit }}
-
-                            </td>
-
-                            <td class="px-3 py-3 w-full lg:w-auto p-3 text-gray-800 text-center lg:text-left lg:border-0 border border-b block lg:table-cell relative lg:static">
-
-                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Entrada</span>
-
-                                Folio:{{ $conclusion->entrie->folio }}
+                                <p class="text-sm font-medium text-gray-900">{{ $office->name }}</p>
 
                             </td>
 
                             <td class="px-3 py-3 w-full lg:w-auto p-3 text-gray-800 text-center lg:text-left lg:border-0 border border-b block lg:table-cell relative lg:static">
 
-                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Archivos</span>
+                                <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Nombre</span>
 
-                                <div class="md:space-y-1 flex flex-grow-0 md:flex-col justify-center text-center items-center">
+                                @if($office->usuario != null)
 
-                                    @foreach ($conclusion->files as $file)
-                                        <a
-                                            href="{{ Storage::disk('pdfs')->url($file->url)}}"
-                                            target="_blank"
-                                            class="bg-red-400 hover:shadow-lg text-white text-xs md:text-sm px-3 py-1 rounded-full hover:bg-red-700 focus:outline-none mr-2 md:mr-0"
-                                        >
-                                        PDF {{ $loop->iteration }}
-                                        </a>
+                                    <p class="text-sm font-medium text-gray-900">{{ $office->usuario->name }}</p>
 
-                                    @endforeach
-
-                                </div>
+                                @endif
 
                             </td>
 
@@ -223,13 +200,13 @@
 
                                 <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Registrado</span>
 
-                                @if($conclusion->created_by != null)
+                                @if($office->created_by != null)
 
-                                    <span class="font-semibold">Registrado por: {{$conclusion->createdBy->name}}</span> <br>
+                                    <span class="font-semibold">Registrado por: {{$office->createdBy->name}}</span> <br>
 
                                 @endif
 
-                                {{ $conclusion->created_at }}
+                                {{ $office->created_at }}
 
                             </td>
 
@@ -237,13 +214,13 @@
 
                                 <span class="lg:hidden absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Actualizado</span>
 
-                                @if($conclusion->updated_by != null)
+                                @if($office->updated_by != null)
 
-                                    <span class="font-semibold">Actualizado por: {{$conclusion->updatedBy->name}}</span> <br>
+                                    <span class="font-semibold">Actualizado por: {{$office->updatedBy->name}}</span> <br>
 
                                 @endif
 
-                                {{ $conclusion->updated_at }}
+                                {{ $office->updated_at }}
 
                             </td>
 
@@ -253,12 +230,12 @@
 
                                 <div class="flex justify-center lg:justify-start">
 
-                                    @can('Editar conclusion')
+                                    @can('Editar rol')
 
                                         <button
-                                            wire:click="openModalEdit({{$conclusion}})"
+                                            wire:click="openModalEdit({{$office}})"
                                             wire:loading.attr="disabled"
-                                            wire:target="openModalEdit({{$conclusion}})"
+                                            wire:target="openModalEdit({{$office}})"
                                             class="bg-blue-400 hover:shadow-lg text-white text-xs md:text-sm px-3 py-2 rounded-full mr-2 hover:bg-blue-700 flex focus:outline-none"
                                         >
 
@@ -273,12 +250,12 @@
 
                                     @endcan
 
-                                    @can('Borrar conclusion')
+                                    @can('Borrar rol')
 
                                         <button
-                                            wire:click="openModalDelete({{$conclusion}})"
+                                            wire:click="openModalDelete({{$office}})"
                                             wire:loading.attr="disabled"
-                                            wire:target="openModalDelete({{$conclusion}})"
+                                            wire:target="openModalDelete({{$office}})"
                                             class="bg-red-400 hover:shadow-lg text-white text-xs md:text-sm px-3 py-2 rounded-full hover:bg-red-700 flex focus:outline-none"
                                         >
 
@@ -306,7 +283,7 @@
                     <tr>
 
                         <td colspan="8" class="py-2 px-5">
-                            {{ $conclusions->links()}}
+                            {{ $offices->links()}}
                         </td>
 
                     </tr>
@@ -338,9 +315,9 @@
         <x-slot name="title">
 
             @if($create)
-                Nueva Conclusión
+                Nueva Oficina
             @elseif($edit)
-                Editar Conclusión
+                Editar Oficina
             @endif
 
         </x-slot>
@@ -349,33 +326,22 @@
 
             <div class="flex flex-col md:flex-row justify-between md:space-x-3 mb-5">
 
-                <div class="flex-auto mr-1 ">
+                <div class="flex-auto ">
 
                     <div>
 
-                        <Label>Entrada / Folio</Label>
+                        <Label>Nombre</Label>
+                    </div>
+
+                    <div>
+
+                        <input type="text" class="bg-white rounded text-sm w-full" wire:model.defer="name">
 
                     </div>
 
                     <div>
 
-                        <select class="bg-white rounded text-sm w-full" wire:model.defer="entrie_id">
-
-                            <option value="">Seleccione una opción</option>
-
-                            @foreach ($entries as $entrie)
-
-                                <option value="{{ $entrie->id }}">{{ $entrie->folio }}</option>
-
-                            @endforeach
-
-                        </select>
-
-                    </div>
-
-                    <div>
-
-                        @error('entrie_id') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
+                        @error('name') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
 
                     </div>
 
@@ -389,68 +355,32 @@
 
                     <div>
 
-                        <Label>Comentario</Label>
+                        <Label class="">Seleccione el titular</Label>
 
                     </div>
 
                     <div>
 
-                        <x-quill-text wire:model="comentario" :initial-value="$comentario"/>
+                        <select class="bg-white rounded text-sm w-full" wire:model.defer="user_id">
+
+                            <option value="">Seleccione una opción</option>
+
+                            @foreach ($users as $user)
+
+
+                                <option value="{{ $user->id }}">{{ $user->name }}</option>
+
+                            @endforeach
+
+                        </select>
 
                     </div>
 
                     <div>
 
-                        @error('comentario') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
+                        @error('user_id') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
 
                     </div>
-
-                </div>
-
-            </div>
-
-            <div class="flex flex-col md:flex-row justify-between md:space-x-3 mb-5">
-
-                <div class="flex-auto">
-
-                    <div>
-
-                        @foreach ($files_edit as $file)
-
-                            <div class="flex space-x-2 items-center mb-2">
-
-                                <a
-                                    href="{{ Storage::disk('pdfs')->url($file['url'])}}"
-                                    target="_blank"
-                                    class="bg-red-400 hover:shadow-lg text-white text-xs md:text-sm px-3 py-1 rounded-full hover:bg-red-700 focus:outline-none w-auto"
-                                >
-                                PDF {{ $loop->iteration }}
-                                </a>
-
-                                <button
-                                    wire:click="openModalDeleteFile({{$file['id']}})"
-                                    wire:loading.attr="disabled"
-                                    wire:target="openModalDeleteFile({{$file['id']}})"
-                                    class="bg-red-400 hover:shadow-lg text-white text-xs md:text-sm px-3 py-2 rounded-full hover:bg-red-700 flex focus:outline-none"
-                                >
-
-                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor" class="w-4 h-4">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                                    </svg>
-
-                                </button>
-
-                            </div>
-
-                        @endforeach
-
-                    </div>
-
-                    <div>
-                        @error('files.*') <span class="error text-sm text-red-500">{{ $message }}</span> @enderror
-                    </div>
-
-                    <x-filepond wire:model="files" multiple />
 
                 </div>
 
@@ -501,11 +431,11 @@
     <x-jet-confirmation-modal wire:model="modalDelete">
 
         <x-slot name="title">
-            Eliminar conclusión
+            Eliminar Oficina
         </x-slot>
 
         <x-slot name="content">
-            ¿Esta seguro que desea eliminar la conclusión?, No sera posible recuperar la información.
+            ¿Esta seguro que desea eliminar la oficina?, No sera posible recuperar la información.
         </x-slot>
 
         <x-slot name="footer">
@@ -520,38 +450,6 @@
             <x-jet-danger-button
                 class="ml-2"
                 wire:click="delete()"
-                wire:loading.attr="disabled"
-                wire:target="delete"
-            >
-                Borrar
-            </x-jet-danger-button>
-
-        </x-slot>
-
-    </x-jet-confirmation-modal>
-
-    <x-jet-confirmation-modal wire:model="modalDeleteFile">
-
-        <x-slot name="title">
-            Eliminar Conclusión
-        </x-slot>
-
-        <x-slot name="content">
-            ¿Esta seguro que desea eliminar el consclusión?, No sera posible recuperar la información.
-        </x-slot>
-
-        <x-slot name="footer">
-
-            <x-jet-secondary-button
-                wire:click="$toggle('modalDelete')"
-                wire:loading.attr="disabled"
-            >
-                No
-            </x-jet-secondary-button>
-
-            <x-jet-danger-button
-                class="ml-2"
-                wire:click="deleteFile()"
                 wire:loading.attr="disabled"
                 wire:target="delete"
             >

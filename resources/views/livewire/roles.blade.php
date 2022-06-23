@@ -400,7 +400,7 @@
     <x-jet-confirmation-modal wire:model="modalDelete">
 
         <x-slot name="title">
-            Eliminar Role
+            Eliminar Rol
         </x-slot>
 
         <x-slot name="content">

@@ -6,17 +6,48 @@
 
         <h1 class="text-2xl font-thin tracking-widest mb-4">Entrada</h1>
 
-        <p class="text-lg mb-2">Folio: <span class="text-gray-600">{{ $entrie->folio }}</span></p>
+        <div class="grid grid-cols-1 md:grid-cols-3 md:space-x-2 mb-2">
 
-        <p class="text-lg mb-2">Número de oficio: <span class="text-gray-600">{{ $entrie->numero_oficio }}</span></p>
+            <div>
+                <p class="text-lg mb-2">Folio: <span class="text-gray-600">{{ $entrie->folio }}</span></p>
 
-        <p class="text-lg mb-2">Fecha de termino: <span class="text-gray-600">{{ $entrie->fecha_termino }}</span></p>
+                <p class="text-lg mb-2">Oficio: <span class="text-gray-600">{{ $entrie->numero_oficio }}</span></p>
+
+                <p class="text-lg mb-2">Fecha de termino: <span class="text-gray-600">{{ $entrie->fecha_termino }}</span></p>
+
+            </div>
+
+            <div>
+
+                <p class="text-lg mb-2">Origen: <span class="text-gray-600">{{ $entrie->origen->name }}</span></p>
+
+                <p class="text-lg mb-2">Destinatario: <span class="text-gray-600">{{ $entrie->destinatario->name }}</span></p>
+
+            </div>
+
+            <div>
+
+                <p class="text-lg mb-2">Resgistrada: <span class="text-gray-600">{{ $entrie->created_at }}</span></p>
+
+                <p class="text-lg mb-2">Asignado a:</p>
+
+                @foreach ($entrie->asignadoA as $asignado)
+
+                    <span class="text-gray-600">{{ $asignado->name }}</span>
+
+                    <br>
+
+                @endforeach
+
+            </div>
+
+        </div>
 
         <p class="text-lg mb-2">Asunto:</p>
 
         <div>
 
-            <p class="text-gray-600">{{ $entrie->asunto }}</p>
+            <p class="text-gray-600">{!! $entrie->asunto !!}</p>
 
         </div>
 
@@ -46,15 +77,13 @@
 
             <div class="p-4 border border-gray-300 rounded-lg mb-4">
 
-                <div class="flex justify-between">
+                <div class="grid grid-cols-1 md:grid-cols-2 md:space-x-2">
 
                     <div>
 
                         <p class="text-lg mb-2">Oficio de respuesta: <span class="text-gray-600">{{ $tracking->oficio_respuesta }}</span></p>
 
                         <p class="text-lg mb-2">Fecha de respuesta: <span class="text-gray-600">{{ $tracking->fecha_respuesta }}</span></p>
-
-                        <p class="text-lg mb-2">Comentario:</p>
 
                     </div>
 
@@ -70,7 +99,9 @@
 
                 <div>
 
-                    <p class="text-gray-600">{{ $tracking->comentario }}</p>
+                    <p class="text-lg mb-2">Comentario:</p>
+
+                    <p class="text-gray-600">{!! $tracking->comentario !!}</p>
 
                 </div>
 
@@ -104,15 +135,13 @@
 
         <div class="p-4 border border-gray-300 rounded-lg mb-4">
 
-            <div class="flex justify-between">
+            <div class="grid grid-cols-1 md:grid-cols-2 md:space-x-2">
 
                 <div>
 
                     <p class="text-lg mb-2">Oficio de respuesta: <span class="text-gray-600">{{ $conclusion->oficio_respuesta }}</span></p>
 
                     <p class="text-lg mb-2">Fecha de respuesta: <span class="text-gray-600">{{ $conclusion->fecha_respuesta }}</span></p>
-
-                    <p class="text-lg mb-2">Comentario:</p>
 
                 </div>
 
@@ -128,7 +157,9 @@
 
             <div>
 
-                <p class="text-gray-600">{{ $conclusion->comentario }}</p>
+                <p class="text-lg mb-2">Comentario:</p>
+
+                <p class="text-gray-600">{!!  $conclusion->comentario !!}</p>
 
             </div>
 

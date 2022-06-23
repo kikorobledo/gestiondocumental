@@ -133,33 +133,9 @@
 
                         </th>
 
-                        <th wire:click="order('role')" class="cursor-pointer px-3 py-3 hidden lg:table-cell">
+                        <th class="px-3 py-3 hidden lg:table-cell">
 
                             Rol
-
-                            @if($sort == 'role')
-
-                                @if($direction == 'asc')
-
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h9m5-4v12m0 0l-4-4m4 4l4-4" />
-                                    </svg>
-
-                                @else
-
-                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4h13M3 8h9m-9 4h6m4 0l4-4m0 0l4 4m-4-4v12" />
-                                    </svg>
-
-                                @endif
-
-                            @else
-
-                                <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4 float-right" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16V4m0 0L3 8m4-4l4 4m6 0v12m0 0l4-4m-4 4l-4-4" />
-                                </svg>
-
-                            @endif
 
                         </th>
 
@@ -346,7 +322,9 @@
 
                                 <span class="lg:hidden  absolute top-0 left-0 bg-blue-300 px-2 py-1 text-xs text-white font-bold uppercase rounded-br-xl">Ubicaión</span>
 
-                                {{ $user->location->name }}
+                                @if($user->office)
+                                    {{ $user->office ? $user->office->name : $user->officeBelonging->name }}
+                                @endif
 
                             </td>
 
@@ -452,7 +430,7 @@
 
                     <tr>
 
-                        <td colspan="8" class="py-2 px-5">
+                        <td colspan="15" class="py-2 px-5">
                             {{ $users->links()}}
                         </td>
 
@@ -632,7 +610,7 @@
 
                 <div>
 
-                    <Label>Ubicación</Label>
+                    <Label>Dependencia</Label>
                 </div>
 
                 <div>
@@ -641,9 +619,9 @@
 
                         <option value="">Selecciona una opción</option>
 
-                        @foreach ($dependencies as $dependency)
+                        @foreach ($offices as $office)
 
-                            <option value="{{ $dependency->id }}">{{ $dependency->name }}</option>
+                            <option value="{{ $office->id }}">{{ $office->name }}</option>
 
                         @endforeach
 
@@ -688,9 +666,9 @@
                 @endif
 
                 <button
-                    wire:click="closeModal"
+                    wire:click="resetAll"
                     wire:loading.attr="disabled"
-                    wire:target="closeModal"
+                    wire:target="resetAll"
                     type="button"
                     class="bg-red-400 hover:shadow-lg text-white font-bold px-4 py-2 rounded-full text-sm mb-2 hover:bg-red-700 flaot-left focus:outline-none">
                     Cerrar

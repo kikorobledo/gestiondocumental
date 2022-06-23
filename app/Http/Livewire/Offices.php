@@ -3,45 +3,52 @@
 namespace App\Http\Livewire;
 
 use App\Http\Traits\ComponentesTrait;
-use App\Models\Dependency;
+use App\Models\User;
+use App\Models\Office;
 use Livewire\Component;
 use Livewire\WithPagination;
 
-class Dependencies extends Component
+class Offices extends Component
 {
 
     use WithPagination;
     use ComponentesTrait;
 
+    public $selected_id;
     public $name;
+    public $user_id;
 
     protected function rules(){
         return[
             'name' => 'required',
+            'user_id' => 'required'
         ];
     }
 
     protected $messages = [
         'name.required' => 'El campo nombre es obligatorio.',
+        'user_id.required' => 'El campo usuario es obligatorio.',
     ];
 
     public function resetAll(){
-        $this->reset('selected_id','name', 'modal','modalDelete', 'modalDeleteFile');
+        $this->reset('name','user_id', 'selected_id', 'modal','modalDelete');
         $this->resetErrorBag();
         $this->resetValidation();
     }
 
-    public function openModalEdit($dependency){
+    public function openModalEdit($office){
 
         $this->resetAll();
 
         $this->create = false;
 
-        $this->selected_id = $dependency['id'];
-        $this->name = $dependency['name'];
+        $this->selected_id = $office['id'];
+        $this->name = $office['name'];
+        $this->user_id = $office['user_id'];
 
         $this->edit = true;
         $this->modal = true;
+
     }
 
     public function create(){
@@ -50,16 +57,18 @@ class Dependencies extends Component
 
         try {
 
-            Dependency::create([
+            Office::create([
                 'name' => $this->name,
+                'user_id' => $this->user_id,
                 'created_by' => auth()->user()->id,
             ]);
 
-            $this->dispatchBrowserEvent('showMessage',['success', "La dependencia ha sido creada con éxito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "La Oficina ha sido creada con éxito."]);
 
             $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
             $this->resetAll();
@@ -68,22 +77,26 @@ class Dependencies extends Component
 
     public function update(){
 
+
+
         $this->validate();
 
         try {
 
-            $dependency = Dependency::findorFail($this->selected_id);
+            $office = Office::findorFail($this->selected_id);
 
-            $dependency->update([
+            $office->update([
                 'name' => $this->name,
+                'user_id' => $this->user_id,
                 'updated_by' => auth()->user()->id,
             ]);
 
-            $this->dispatchBrowserEvent('showMessage',['success', "La dependencia ha sido actualizada con éxito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "La oficina ha sido actualizada con éxito."]);
 
             $this->resetAll();
 
         } catch (\Throwable $th) {
+
             $this->dispatchBrowserEvent('showMessage',['error', "Lo sentimos hubo un error inténtalo de nuevo"]);
 
             $this->resetAll();
@@ -95,11 +108,11 @@ class Dependencies extends Component
 
         try {
 
-            $dependency = Dependency::findorFail($this->selected_id);
+            $office = Office::findorFail($this->selected_id);
 
-            $dependency->delete();
+            $office->delete();
 
-            $this->dispatchBrowserEvent('showMessage',['success', "La dependencia ha sido eliminada con éxito."]);
+            $this->dispatchBrowserEvent('showMessage',['success', "La oficina ha sido eliminada con éxito."]);
 
             $this->resetAll();
 
@@ -113,11 +126,18 @@ class Dependencies extends Component
     public function render()
     {
 
-        $dependencies = Dependency::with('createdBy', 'updatedBy')
-                                        ->where('name', 'LIKE', '%' . $this->search . '%')
-                                        ->orderBy($this->sort, $this->direction)
-                                        ->paginate($this->pagination);
+        $offices = Office::with('usuario','createdBy', 'updatedBy')
+                            ->where('name', 'LIKE', '%' . $this->search . '%')
+                            ->orWhereHas('usuario', function($q){
+                                $q->where('name', 'LIKE', '%' . $this->search . '%');
+                            })
+                            ->orderBy($this->sort, $this->direction)
+                            ->paginate($this->pagination);
 
-        return view('livewire.dependencies', compact('dependencies'));
+
+
+        $users = User::all();
+
+        return view('livewire.offices', compact('offices', 'users'))->extends('layouts.admin');
     }
 }
